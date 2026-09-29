@@ -1,24 +1,26 @@
-
-.products{
+.products {
 	display: flex;
 	gap: 20px;
 	flex-wrap: wrap;
 }
-.product-card{
+
+.product-card {
 	border: 1px solid black;
 	padding: 20px;
-	border-radius: 10px
-	width: 200px;
+	border-radius: 10px width: 200px;
 }
-.product-card input{
+
+.product-card input {
 	width: 60px;
 	padding: 5px;
 	margin-bottom: 10px;
 }
-.product-card button{
+
+.product-card button {
 	padding: 8px 12px;
 	border-radius: 5px;
 }
-.product-card button:disabled{
+
+.product-card button:disabled {
 	opacity: 0.5;
 }

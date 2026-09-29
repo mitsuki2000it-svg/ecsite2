@@ -1,75 +1,80 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta charset="UTF-8">
-<title>商品一覧</title>
+	<meta charset="UTF-8">
+	<title>商品一覧</title>
 
-<link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-	
-<h2>商品検索</h2>
 
-<input
-     type="text"
-	 id="search-keyword"
-	 placeholder="商品を入力"
-	 onkeydown="handleSearchKey(event)"
->
+	<h2>商品検索</h2>
 
-<select id="sort-order" onchange="sortProducts()">
-	<option value="">並べ替え</option>
-	<option value="price-asc">価格が安い順</option>
-	<option value="price-desc">価格が高い順</option>
-</select>	
+	<input type="text" id="search-keyword" placeholder="商品を入力" onkeydown="handleSearchKey(event)">
 
-<button onclick="searchProducts()">
-	検索
-</button>
+	<select id="sort-order" onchange="sortProducts()">
+		<option value="">並べ替え</option>
+		<option value="price-asc">価格が安い順</option>
+		<option value="price-desc">価格が高い順</option>
+	</select>
 
-<button onclick="resetSearch()">
-	リセット
-</button>			
-	 
-<h1>商品一覧</h1>	
+	<label>
+		<input type="checkbox" id="in-stock-only" onchange="filterAndSortProducts()">
+		在庫ありのみ
+	</label>
 
-<div class="products" id="products"></div>
+	<button onclick="searchProducts()">
+		検索
+	</button>
 
-<h2>購入履歴</h2>
+	<button onclick="resetSearch()">
+		リセット
+	</button>
 
-<div id="sales"></div>	
+	<p id="product-count"></p>
 
-<h2>総売上</h2>
+	<h1>商品一覧</h1>
 
-<p id="total-sales"></p>		
+	<div class="products" id="products"></div>
 
-<h2>販売件数</h2>
+	<h2>購入履歴</h2>
 
-<p id="sale-count"></p>
+	<div id="sales"></div>
 
-<h2>商品追加</h2>
+	<h2>総売上</h2>
 
-<input type="text" id="product-name" placeholder="商品名">
-<input type="number" id="product-price" placeholder="価格">
-<input type="number" id="product-stock" placeholder="在庫">
+	<p id="total-sales"></p>
 
-<button onclick="createProduct()">商品を追加</button>
-	
-<h2>商品編集</h2>
+	<h2>販売件数</h2>
 
-<input type="hidden" id="edit-product-id">
+	<p id="sale-count"></p>
 
-<input type="text" id="edit-product-name" placeholder="商品名">
+	<h2>商品追加</h2>
 
-<input type="number" id="edit-product-price" placeholder="価格">
+	<input type="text" id="product-name" placeholder="商品名">
+	<input type="number" id="product-price" placeholder="価格">
+	<input type="number" id="product-stock" placeholder="在庫">
 
-<input type="number" id="edit-product-stock" placeholder="在庫">	
+	<button onclick="createProduct()">商品を追加</button>
 
-<button onclick="updateProduct()">
-	更新
-</button>	
+	<h2>商品編集</h2>
 
-<script src="script.js"></script>
+	<input type="hidden" id="edit-product-id">
+
+	<input type="text" id="edit-product-name" placeholder="商品名">
+
+	<input type="number" id="edit-product-price" placeholder="価格">
+
+	<input type="number" id="edit-product-stock" placeholder="在庫">
+
+	<button onclick="updateProduct()">
+		更新
+	</button>
+
+	<script src="script.js"></script>
 
 </body>
+
 </html>
