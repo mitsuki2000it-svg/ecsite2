@@ -14,17 +14,6 @@
 
 	<input type="text" id="search-keyword" placeholder="商品を入力" onkeydown="handleSearchKey(event)">
 
-	<select id="sort-order" onchange="sortProducts()">
-		<option value="">並べ替え</option>
-		<option value="price-asc">価格が安い順</option>
-		<option value="price-desc">価格が高い順</option>
-	</select>
-
-	<label>
-		<input type="checkbox" id="in-stock-only" onchange="filterAndSortProducts()">
-		在庫ありのみ
-	</label>
-
 	<button onclick="searchProducts()">
 		検索
 	</button>
@@ -33,11 +22,48 @@
 		リセット
 	</button>
 
+	<select id="sort-order" onchange="sortProducts()">
+		<option value="">並べ替え</option>
+		<option value="price-asc">価格が安い順</option>
+		<option value="price-desc">価格が高い順</option>
+	</select>
+
+	<input type="number" id="min-price" placeholder="最低価格">
+
+	<input type="number" id="max-price" placeholder="最高価格">
+
+	<button onclick="applyFilters()">
+	価格で絞り込み
+	</button>
+
+	<button onclick="resetFilters()">
+		条件をリセット
+	</button>
+
+	<select id="page-size" onchange="changePageSize()">
+		<option value="5">5件ずつ</option>
+		<option value="10">10件ずつ</option>
+		<option value="all">全件</option>
+	</select>
+
+	<label>
+		<input type="checkbox" id="in-stock-only" onchange="applyFilters()">
+		在庫ありのみ
+	</label>
+
 	<p id="product-count"></p>
 
 	<h1>商品一覧</h1>
 
 	<div class="products" id="products"></div>
+
+	<div id="pagination">
+		<button id="previous-button" onclick="previousPage()">前へ</button>
+
+		<span id="page-info"></span>
+
+		<button id="next-button" onclick="nextPage()">次へ</button>
+	</div>
 
 	<h2>購入履歴</h2>
 

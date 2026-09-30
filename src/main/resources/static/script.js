@@ -3,8 +3,75 @@ const productsElement = document.getElementById("products");
 const salesElement = document.getElementById("sales");
 const totalSalesElement = document.getElementById("total-sales");
 const saleCountElement = document.getElementById("sale-count");
+let currentPage = 0;
+let totalPages = 0;
+let pageSize = 5;
+
+function applyFilters() {
+	currentPage = 0;
+	loadProducts();
+}
+
+function changePageSize() {
+
+	const value =
+		document.getElementById("page-size").value;
+
+	if (value === "all") {
+		pageSize = 1000;
+	} else {
+		pageSize = Number(value);
+	}
+
+	currentPage = 0;
+
+	loadProducts();
+
+}
+
+function nextPage() {
+
+	if (currentPage < totalPages - 1) {
+		currentPage++;
+		loadProducts();
+	}
+}
+
+function previousPage() {
+
+	if (currentPage > 0) {
+		currentPage--;
+		loadProducts();
+	}
+}
+
+function resetFilters() {
+
+	document.getElementById("search-keyword").value = "";
+	document.getElementById("min-price").value = "";
+	document.getElementById("max-price").value = "";
+	document.getElementById("in-stock-only").checked = false;
+	document.getElementById("sort-order").value = "";
+	document.getElementById("page-size").value = "5";
+
+	pageSize = 5;
+	currentPage = 0;
+
+	loadProducts();
+}
 
 function filterAndSortProducts() {
+
+	const minPrice =
+		Number(document.getElementById("min-price").value);
+
+	const maxPrice =
+		Number(document.getElementById("max-price").value);
+
+	if (minPrice > 0 && maxPrice > 0 && minPrice > maxPrice) {
+		alert("最低価格は最高価格以下にしてください");
+		return;
+	}
 
 	const inStockOnly =
 		document.getElementById("in-stock-only").checked;
@@ -15,41 +82,43 @@ function filterAndSortProducts() {
 	const sortOrder =
 		document.getElementById("sort-order").value;
 
-	fetch("/products")
+	let url;
+
+	if (keyword === "") {
+
+		url = `/products/page?page=${currentPage}&size=${pageSize}&sortOrder=${sortOrder}&inStockOnly=${inStockOnly}&minPrice=${minPrice}&maxPrice=${maxPrice}`;
+	} else {
+		url = `/products/search?keyword=${keyword}&page=${currentPage}&size=${pageSize}&sortOrder=${sortOrder}&inStockOnly=${inStockOnly}&minPrice=${minPrice}&maxPrice=${maxPrice}`;
+	}
+
+	fetch(url)
 		.then(response => response.json())
 		.then(data => {
 
-			let products = data;
+			totalPages = data.totalPages;
 
-			if (keyword !== "") {
-				products = products.filter(product =>
-					product.name.toLowerCase()
-						.includes(keyword.toLowerCase())
-				);
-			}
-			if (sortOrder === "price-asc") {
-				products.sort((a, b) =>
-					a.price - b.price
-				);
-			}
+			productCountElement.innerHTML =
+				data.totalElements + "件の商品";
 
-			if (sortOrder === "price-desc") {
-				products.sort((a, b) =>
-					b.price - a.price
-				);
-			}
+			document.getElementById("page-info").innerHTML =
+				totalPages === 0 ? "0/0" : (currentPage + 1) + "/" + totalPages;
+
+			document.getElementById("previous-button").disabled =
+				currentPage === 0;
+
+			document.getElementById("next-button").disabled =
+				totalPages === 0 || currentPage === totalPages - 1;
+
+			let products = data.content;
 
 			if (products.length === 0) {
+
+				productCountElement.innerHTML =
+					"0件の商品";
+
 				productsElement.innerHTML =
 					"商品が見つかりません";
 				return;
-			}
-
-			if (inStockOnly) {
-				products = products.filter(product =>
-					product.stock > 0
-
-				);
 			}
 
 			displayProducts(products);
@@ -58,14 +127,17 @@ function filterAndSortProducts() {
 }
 
 function sortProducts() {
-	filterAndSortProducts();
+	currentPage = 0;
+	loadProducts();
 }
 
 function resetSearch() {
 
 	document.getElementById("search-keyword").value = "";
 
-	filterAndSortProducts();
+	currentPage = 0;
+
+	loadProducts();
 }
 
 function handleSearchKey(event) {
@@ -77,7 +149,7 @@ function handleSearchKey(event) {
 }
 
 function displayProducts(products) {
-	productCountElement.innerHTML = products.length + "件の商品";
+
 
 	productsElement.innerHTML = "";
 
@@ -119,7 +191,8 @@ function displayProducts(products) {
 }
 
 function searchProducts() {
-	filterAndSortProducts();
+	currentPage = 0;
+	loadProducts();
 }
 
 function updateProduct() {
@@ -330,16 +403,9 @@ function loadSales() {
 }
 
 function loadProducts() {
+	filterAndSortProducts();
+};
 
-
-	fetch("/products")
-		.then(response => response.json())
-		.then(data => {
-
-			displayProducts(data);
-
-		});
-}
 
 
 function purchase(productId) {
