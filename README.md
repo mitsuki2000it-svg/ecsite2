@@ -71,6 +71,7 @@ Java / Spring Bootで作成した学習用ECサイトです。
 spring.datasource.url=jdbc:mysql://localhost:3306/product_db
 spring.datasource.username=YOUR_USERNAME
 spring.datasource.password=YOUR_PASSWORD
+```
 
 3. Spring Bootアプリケーションを起動する
 
@@ -88,7 +89,7 @@ http://localhost:8080
 
 ## 画面イメージ
 
-###　トップページ
+### トップページ
 
 ![トップページ1](images/user-top-page-1.png)
 
