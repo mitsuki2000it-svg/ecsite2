@@ -85,3 +85,25 @@ http://localhost:8080
 - 配送先住所の登録
 - 決済機能
 - 本番環境へのデプロイ
+
+## 画面イメージ
+
+###　トップページ
+
+![トップページ1](images/user-top-page-1.png)
+
+![トップページ2](images/user-top-page-2.png)
+
+### 管理者トップページ
+
+![管理者トップページ](images/admin-top-page.png)
+
+### 管理者ページ
+
+![管理者ページ1](images/admin-page-1.png)
+
+![管理者ページ2](images/admin-page-2.png)
+
+
+
+
