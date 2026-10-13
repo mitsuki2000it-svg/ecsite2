@@ -2,6 +2,11 @@
 
 Java / Spring Bootで作成した学習用ECサイトです。
 
+## 公開URL
+
+https://ecsite2-production.up.railway.app
+
+
 ## 主な機能
 
 - 商品追加 ・ 編集 ・ 削除
@@ -104,7 +109,3 @@ http://localhost:8080
 ![管理者ページ1](images/admin-page-1.png)
 
 ![管理者ページ2](images/admin-page-2.png)
-
-
-
-
