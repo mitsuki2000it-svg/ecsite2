@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ログイン</title>
+</head>
+
+<body>
+
+    <h1>ログイン</h1>
+
+    <form id="login-form" action="/login" method="post">
+
+        <input type="text" name="username" placeholder="ユーザー名">
+
+        <input type="password" name="password" placeholder="パスワード">
+
+        <button type="submit">
+            ログイン
+        </button>
+
+    </form>
+
+    <p id="login-error"></p>
+
+    <a href="/register.html">
+        新規会員登録
+    </a>
+
+
+    <script src="login.js"></script>
+
+</body>
+
+</html>

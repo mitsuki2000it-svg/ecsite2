@@ -20,6 +20,11 @@ public class SaleService {
 		return sales.stream().map(SaleResponse::from).toList();
 
 	}
+	
+	public List<Sale> getMySales(String username) {
+		
+		return saleRepository.findByUser_UsernameOrderBySoldAtDesc(username);
+	}
 
 	public Integer getTotalSales() {
 

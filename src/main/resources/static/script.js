@@ -3,9 +3,12 @@ const productsElement = document.getElementById("products");
 const salesElement = document.getElementById("sales");
 const totalSalesElement = document.getElementById("total-sales");
 const saleCountElement = document.getElementById("sale-count");
+const cartElement = document.getElementById("cart");
 let currentPage = 0;
 let totalPages = 0;
 let pageSize = 5;
+let cart =
+	JSON.parse(localStorage.getItem("cart")) || [];
 
 function applyFilters() {
 	currentPage = 0;
@@ -79,6 +82,9 @@ function filterAndSortProducts() {
 	const keyword =
 		document.getElementById("search-keyword").value.trim();
 
+	const encodedKeyword =
+		encodeURIComponent(keyword);
+
 	const sortOrder =
 		document.getElementById("sort-order").value;
 
@@ -88,11 +94,22 @@ function filterAndSortProducts() {
 
 		url = `/products/page?page=${currentPage}&size=${pageSize}&sortOrder=${sortOrder}&inStockOnly=${inStockOnly}&minPrice=${minPrice}&maxPrice=${maxPrice}`;
 	} else {
-		url = `/products/search?keyword=${keyword}&page=${currentPage}&size=${pageSize}&sortOrder=${sortOrder}&inStockOnly=${inStockOnly}&minPrice=${minPrice}&maxPrice=${maxPrice}`;
+		url = `/products/search?keyword=${encodedKeyword}&page=${currentPage}&size=${pageSize}&sortOrder=${sortOrder}&inStockOnly=${inStockOnly}&minPrice=${minPrice}&maxPrice=${maxPrice}`;
 	}
 
 	fetch(url)
-		.then(response => response.json())
+		.then(response => {
+
+			if (!response.ok) {
+				return response.json().then(errorData => {
+					throw new Error(
+						errorData.error || "商品を取得できませんでした"
+					);
+				});
+			}
+
+			return response.json();
+		})
 		.then(data => {
 
 			totalPages = data.totalPages;
@@ -121,8 +138,11 @@ function filterAndSortProducts() {
 				return;
 			}
 
-			displayProducts(products);
-		});
+			displayProducts(data.content);
+		})
+		.catch(error => {
+			alert(error.message);
+		})
 
 }
 
@@ -156,259 +176,281 @@ function displayProducts(products) {
 	products.forEach(product => {
 
 		productsElement.innerHTML += `
-		<div class="product-card">
+	<div class="product-card ${product.stock === 0 ? "sold-out" : ""}">
 		
 		<h2>${product.name}</h2>
-		<p>${product.price}円</p>
-		<p>在庫:${product.stock}</p>
+
+		${product.stock === 0
+				? '<span class="sold-out-label">売り切れ</span>'
+				: product.stock <= 3
+					? '<span class="low-stock-label">残りわずか</span>'
+					: ''
+			}
 		
+		<p class="product-price">${product.price}円</p>
+		<p class="product-stock ${product.stock <= 3 ? "low-stock" : ""}">
+		    在庫:${product.stock}
+		</p>
+		
+        <div class="product-actions">
+
 		<input 
 		type="number"
 		id="amount-${product.id}"
 		value="1"
 		min="1"
 		>
-		
+
 		<button
+		class="buy-button"
 		onclick="purchase(${product.id})"
 		${product.stock === 0 ? "disabled" : ""}
 		>
 		${product.stock === 0 ? "売り切れ" : "購入"}
-		</button>	
-		
-		<button onclick="deleteProduct(${product.id})">
-		削除
 		</button>
 		
-		<button onclick="editProduct(${product.id})">
-		編集
+		<button 
+		class="cart-button"
+		onclick="addToCart(${product.id})"
+		${product.stock === 0 ? "disabled" : ""}
+		>
+		カートに追加
 		</button>
 		
 		</div>
+
+	</div>	
 		
 		`;
 	})
 }
+async function purchaseCart() {
+	const csrf =
+		await getCsrfToken();
+
+	if (cart.length === 0) {
+		alert("カートが空です");
+		return;
+	}
+
+	const confirmed =
+		confirm("カートの商品を購入しますか?");
+
+	if (!confirmed) {
+		return;
+	}
+
+	const items = cart.map(item => {
+		return {
+			productId: item.product.id,
+			amount: item.amount
+		};
+	});
+
+	fetch(`/cart/purchase`, {
+		method: "POST",
+
+		headers: {
+			"Content-Type": "application/json",
+			[csrf.headerName]: csrf.token
+		},
+
+		body: JSON.stringify({
+			items: items
+		})
+	})
+
+		.then(response => {
+
+			if (!response.ok) {
+				return response.json().then(errorData => {
+					throw new Error(
+						errorData.error || "購入に失敗しました"
+					);
+				});
+			}
+
+			return response.json();
+		})
+		.then(data => {
+
+			cart = [];
+
+			displayCart();
+			loadProducts();
+			loadMySales();
+
+			alert("購入が完了しました");
+		})
+		.catch(error => {
+			alert(error.message);
+		});
+
+}
+function displayCart() {
+
+	const purchaseButton =
+		document.getElementById("cart-purchase-button");
+
+	const clearButton =
+		document.getElementById("cart-clear-button");
+
+	purchaseButton.disabled = cart.length === 0;
+	clearButton.disabled = cart.length === 0;
+
+	let total = 0;
+
+	cartElement.innerHTML = "";
+
+	if (cart.length === 0) {
+		cartElement.innerHTML = `
+		<p class="empty-message">
+		カートは空です
+		</p>
+		`;
+
+		localStorage.setItem(
+			"cart",
+			JSON.stringify(cart)
+		);
+
+		return;
+	}
+
+	cart.forEach(item => {
+		total += item.product.price * item.amount;
+
+		cartElement.innerHTML += `
+		<div>
+		   <p>${item.product.name}</p>
+		   <p>${item.product.price}円</p>
+		   <input
+		       type="number"
+			   min="1"
+			   value="${item.amount}"
+			   onchange="updateCartAmount(${item.product.id}, this.value)"
+			   >
+			   <button onclick="removeFromCart(${item.product.id})">
+                  削除
+               </button>
+		</div>
+		`;
+	});
+	cartElement.innerHTML += `
+	    <p>合計:${total}円</p>
+	`;
+
+	localStorage.setItem(
+		"cart",
+		JSON.stringify(cart)
+	);
+}
+function updateCartAmount(productId, value) {
+
+	const amount = Number(value);
+
+	const item = cart.find(item =>
+		item.product.id === productId
+	);
+
+	if (!item) {
+		return;
+	}
+
+	if (amount < 1) {
+		alert("購入数は1以上にしてください");
+		displayCart();
+		return;
+	}
+
+	if (amount > item.product.stock) {
+		alert("在庫数を超えています");
+		displayCart();
+		return;
+	}
+
+	item.amount = amount;
+
+	displayCart();
+}
+function removeFromCart(productId) {
+
+	cart = cart.filter(item =>
+		item.product.id !== productId
+	);
+
+	displayCart();
+}
+function clearCart() {
+
+	cart = [];
+
+	displayCart();
+}
+function addToCart(productId) {
+
+	const amountInput =
+		document.getElementById(`amount-${productId}`);
+
+	const amount = Number(amountInput.value);
+
+	if (amount < 1) {
+		alert("購入数は1以上にしてください");
+		return;
+	}
+
+	fetch(`/products/${productId}`)
+		.then(response => response.json())
+		.then(product => {
+
+			if (amount > product.stock) {
+				alert("在庫数を超えています");
+				return;
+			}
+
+			const existingItem =
+				cart.find(item =>
+					item.product.id === product.id
+				);
+
+			if (existingItem) {
+
+				const newAmount =
+					existingItem.amount + amount;
+
+				if (newAmount > product.stock) {
+					alert("在庫数を超えています");
+					return;
+				}
+
+				existingItem.amount = newAmount;
+
+			} else {
+				cart.push({
+					product: product,
+					amount: amount
+				});
+			}
+
+			displayCart();
+
+			alert("カートに追加しました");
+		});
+}
+
 
 function searchProducts() {
 	currentPage = 0;
 	loadProducts();
 }
 
-function updateProduct() {
-
-	const id =
-		document.getElementById("edit-product-id").value;
-
-	const name =
-		document.getElementById("edit-product-name").value;
-
-	const price =
-		Number(document.getElementById("edit-product-price").value);
-
-	const stock =
-		Number(document.getElementById("edit-product-stock").value);
-
-	fetch(`/products/${id}`, {
-		method: "PUT",
-
-		headers: {
-			"Content-Type": "application/json"
-		},
-
-		body: JSON.stringify({
-			name,
-			price,
-			stock
-		})
-	})
-		.then(response => {
-
-			if (!response.ok) {
-				return response.json().then(errorData => {
-
-					const message =
-						Object.values(errorData).join("\n");
-
-					throw new Error(
-						message || "商品を更新できませんでした"
-					);
-				});
-			}
-			return response.json();
-
-		})
-		.then(data => {
-
-			alert("商品を更新しました");
-
-			document.getElementById("edit-product-id").value = "";
-			document.getElementById("edit-product-name").value = "";
-			document.getElementById("edit-product-price").value = "";
-			document.getElementById("edit-product-stock").value = "";
-
-			loadProducts();
-		})
-		.catch(error => {
-			alert(error.message);
-		});
-}
-
-function editProduct(productId) {
-
-	fetch(`/products/${productId}`)
-		.then(response => response.json())
-		.then(product => {
-
-			document.getElementById("edit-product-id").value =
-				product.id;
-
-			document.getElementById("edit-product-name").value =
-				product.name;
-
-			document.getElementById("edit-product-price").value =
-				product.price;
-
-			document.getElementById("edit-product-stock").value =
-				product.stock;
-
-		});
-}
-
-function deleteProduct(productId) {
-
-	const confirmed =
-		confirm("本当にこの商品を削除しますか");
-
-	if (!confirmed) {
-		return;
-	}
-
-	fetch(`/products/${productId}`, {
-		method: "DELETE"
-	})
-		.then(response => {
-
-			if (!response.ok) {
-				return response.json().then(errorData => {
-					throw new Error(errorData.message || errorData.error || "商品を削除できませんでした");
-				});
-			}
-
-			alert("商品を削除しました");
-
-			loadProducts();
-		})
-		.catch(error => {
-			alert(error.message);
-		});
-}
-
-function createProduct() {
-
-	const name =
-		document.getElementById("product-name").value;
-
-	const price =
-		Number(document.getElementById("product-price").value);
-
-	const stock =
-		Number(document.getElementById("product-stock").value);
-
-	fetch("/products", {
-		method: "POST",
-
-		headers: {
-			"Content-Type": "application/json"
-		},
-
-		body: JSON.stringify({
-			name,
-			price,
-			stock
-		})
-	})
-		.then(response => {
-
-			if (!response.ok) {
-				return response.json().then(errorData => {
-
-					const message =
-						Object.values(errorData).join("\n");
-
-					throw new Error(
-						message || "商品を追加できませんでした"
-					);
-				});
-
-			}
-
-			return response.json();
-
-		})
-
-		.then(data => {
-
-			alert("商品を追加しました!");
-
-			document.getElementById("product-name").value = "";
-			document.getElementById("product-price").value = "";
-			document.getElementById("product-stock").value = "";
-
-			loadProducts();
-		})
-		.catch(error => {
-			alert(error.message);
-		});
-}
-
-function loadSaleCount() {
-	fetch("/sales/count")
-		.then(response => response.json())
-		.then(data => {
-			saleCountElement.innerHTML = data + "件";
-		});
-}
-
-function loadTotalSales() {
-	fetch("/sales/total")
-		.then(response => response.json())
-		.then(data => {
-			totalSalesElement.innerHTML = data + "円";
-		});
-}
-
-function loadSales() {
-	fetch("/sales")
-
-		.then(response => response.json())
-
-		.then(data => {
-			salesElement.innerHTML = "";
-
-			data.forEach(sale => {
-				const soldAt = sale.soldAt ? new Date(sale.soldAt).toLocaleString("ja-JP") : "日時なし";
-
-				salesElement.innerHTML += `
-			
-			<div class="sale-card">
-			<p>商品名:${sale.productName}</p>
-			<p>購入数:${sale.amount}個</p>
-			<p>売上:${sale.sales}円</p>
-			<p>購入日時:${soldAt}</p>
-			</div>
-			`;
-			});
-		});
-}
-
 function loadProducts() {
 	filterAndSortProducts();
 };
 
-
-
-function purchase(productId) {
+async function purchase(productId) {
+	const csrf =
+		await getCsrfToken();
 
 	const amountInput = document.getElementById(`amount-${productId}`);
 
@@ -420,15 +462,14 @@ function purchase(productId) {
 	}
 
 
-
 	fetch(`/products/${productId}/purchase`, {
-
 
 		method: "POST",
 
 
 		headers: {
-			"Content-Type": "application/json"
+			"Content-Type": "application/json",
+			[csrf.headerName]: csrf.token
 		},
 
 		body: JSON.stringify({
@@ -459,9 +500,8 @@ function purchase(productId) {
 
 
 			loadProducts();
-			loadSales();
-			loadTotalSales();
-			loadSaleCount();
+			loadMySales();
+
 		})
 
 		.catch(error => {
@@ -471,9 +511,142 @@ function purchase(productId) {
 		});
 }
 
+async function loadMySales() {
 
+	const response = await fetch("/my-sales");
+	const sales = await response.json();
 
+	const mySalesElement =
+		document.getElementById("my-sales");
+
+	mySalesElement.innerHTML = "";
+
+	if (sales.length === 0) {
+		mySalesElement.innerHTML =
+			"購入履歴はありません";
+
+		return;
+	}
+
+	const groupedSales = {};
+
+	sales.forEach(sale => {
+
+		const key =
+			sale.orderId ?? `old-${sale.id}`;
+
+		if (!groupedSales[key]) {
+			groupedSales[key] = [];
+		}
+
+		groupedSales[key].push(sale);
+	});
+
+	Object.values(groupedSales).forEach(orderSales => {
+
+		const firstSale = orderSales[0];
+
+		const orderedAt =
+			firstSale.orderedAt
+				? new Date(firstSale.orderedAt)
+					.toLocaleString("ja-JP")
+				: "日時なし";
+
+		let itemsHtml = "";
+		let orderTotal = 0;
+		const statusText =
+			firstSale.status === "ORDERED"
+				? "注文済み"
+				: firstSale.status === "SHIPPED"
+					? "発送済み"
+					: firstSale.status === "CANCELLED"
+						? "キャンセル済み"
+						: "注文情報なし"
+
+		orderSales.forEach(sale => {
+
+			orderTotal += sale.sales;
+
+			itemsHtml += `
+					<p>
+					${sale.productName}
+					${sale.amount}個
+					${sale.sales}円
+					</p>
+				`;
+		});
+
+		mySalesElement.innerHTML += `
+				<div class="sale-card">
+
+				<h3>
+				注文番号:
+				${firstSale.orderId ?? "旧データ"}
+				</h3>
+
+				<p>状態:${statusText}</p>
+
+				${itemsHtml}
+
+                <p>合計金額:${orderTotal}円</p>
+				<p>購入日時:${orderedAt}</p>
+
+				</div>
+				`;
+	});
+}
+
+async function getCsrfToken() {
+
+	const response =
+		await fetch("/csrf");
+
+	const csrf =
+		await response.json();
+
+	return csrf;
+}
+
+async function checkAdmin() {
+
+	const response =
+		await fetch("/is-admin");
+
+	const isAdmin =
+		await response.json();
+
+	if (isAdmin) {
+		document.getElementById("admin-link").hidden = false;
+	}
+}
+
+async function loadCurrentUser() {
+
+	const response = await fetch("/current-user");
+
+	const username = await response.text();
+
+	document.getElementById("current-user")
+		.textContent = username;
+}
+
+async function setLogoutCsrfToken() {
+
+	const csrf = await getCsrfToken();
+
+	const input = document.createElement("input");
+
+	input.type = "hidden";
+	input.name = csrf.parameterName;
+	input.value = csrf.token;
+
+	document.getElementById("logout-form")
+		.appendChild(input);
+}
+
+setLogoutCsrfToken();
 loadProducts();
-loadSales();
-loadTotalSales();
-loadSaleCount();
+displayCart();
+checkAdmin();
+loadCurrentUser();
+loadMySales();

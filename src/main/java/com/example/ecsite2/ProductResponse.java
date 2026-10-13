@@ -12,7 +12,7 @@ public class ProductResponse {
 		
 		response.setId(product.getId());
 		response.setName(product.getName());
-		response.setPrice(product.getprice());
+		response.setPrice(product.getPrice());
 		response.setStock(product.getStock());
 		
 		return response;

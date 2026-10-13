@@ -10,19 +10,33 @@ public class SaleResponse {
 	private String productName;
 	private Integer sales;
 	private LocalDateTime soldAt;
+	private String userName;
+	private Integer orderId;
+	private LocalDateTime orderedAt;
+	private String status;
 
 	public static SaleResponse from(Sale sale) {
 		SaleResponse response = new SaleResponse();
 
 		response.setId(sale.getId());
-		response.setId(sale.getId());
-	    response.setAmount(sale.getAmount());
-	    response.setPrice(sale.getPrice());
-	    response.setProductName(sale.getProductName());
-	    response.setSales(sale.getSales());
-	    response.setSoldAt(sale.getSoldAt());
+		response.setAmount(sale.getAmount());
+		response.setPrice(sale.getPrice());
+		response.setProductName(sale.getProductName());
+		response.setSales(sale.getSales());
+		response.setSoldAt(sale.getSoldAt());
+		if (sale.getUser() != null) {
+			response.setUserName(sale.getUser().getUsername());
+		}
+		if (sale.getOrder() != null) {
+			response.setOrderId(sale.getOrder().getId());
 
-	    return response;
+			response.setOrderedAt(sale.getOrder().getOrderedAt());
+
+			if (sale.getOrder().getStatus() != null) {
+				response.setStatus(sale.getOrder().getStatus().name());
+			}
+		}
+		return response;
 	}
 
 	public Integer getId() {
@@ -71,6 +85,38 @@ public class SaleResponse {
 
 	public void setSoldAt(LocalDateTime soldAt) {
 		this.soldAt = soldAt;
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public Integer getOrderId() {
+		return orderId;
+	}
+
+	public void setOrderId(Integer orderId) {
+		this.orderId = orderId;
+	}
+
+	public LocalDateTime getOrderedAt() {
+		return orderedAt;
+	}
+
+	public void setOrderedAt(LocalDateTime orderedAt) {
+		this.orderedAt = orderedAt;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
 	}
 
 }

@@ -6,15 +6,15 @@ import jakarta.validation.constraints.NotNull;
 
 public class ProductCreateRequest {
 
-	@NotBlank
+	@NotBlank(message = "商品名を入力してください")
 	private String name;
 
-	@NotNull
-	@Min(0)
+	@NotNull(message = "価格を入力してください")
+	@Min(value = 0, message = "価格は0以上にしてください")
 	private Integer price;
 
-	@NotNull
-	@Min(0)
+	@NotNull(message = "在庫数を入力してください")
+	@Min(value = 0, message = "在庫数は0以上にしてください")
 	private Integer stock;
 
 	public String getName() {

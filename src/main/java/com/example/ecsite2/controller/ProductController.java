@@ -1,10 +1,11 @@
-package com.example.ecsite2;
+package com.example.ecsite2.controller;
 
 import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +15,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.example.ecsite2.ProductCreateRequest;
+import com.example.ecsite2.ProductResponse;
+import com.example.ecsite2.ProductService;
+import com.example.ecsite2.ProductUpdateRequest;
+import com.example.ecsite2.PurchaseRequest;
+import com.example.ecsite2.SaleResponse;
 
 import jakarta.validation.Valid;
 
@@ -36,9 +44,12 @@ public class ProductController {
 	}
 
 	@PostMapping("/{id}/purchase")
-	public SaleResponse purchase(@PathVariable Integer id, @Valid @RequestBody PurchaseRequest request) {
+	public SaleResponse purchase(@PathVariable Integer id, @Valid @RequestBody PurchaseRequest request,
+			Authentication authentication) {
 
-		return productService.purchase(id, request.getAmount());
+		String username = authentication.getName();
+
+		return productService.purchase(id, request.getAmount(), username);
 	}
 
 	@GetMapping("/page")

@@ -5,8 +5,8 @@ import jakarta.validation.constraints.NotNull;
 
 public class PurchaseRequest {
 
-	@NotNull
-	@Min(1)
+	@NotNull(message = "購入数を入力してください")
+	@Min(value = 1, message = "購入数は1以上にしてください")
 	private Integer amount;
 
 	public Integer getAmount() {

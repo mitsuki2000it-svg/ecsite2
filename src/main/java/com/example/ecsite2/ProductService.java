@@ -1,6 +1,7 @@
 package com.example.ecsite2;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -19,10 +20,15 @@ public class ProductService {
 
 	private final ProductRepository productRepository;
 	private final SaleRepository saleRepository;
+	private final AppUserRepository appUserRepository;
+	private final CustomerOrderRepository customerOrderRepository;
 
-	public ProductService(ProductRepository productRepository, SaleRepository saleRepository) {
+	public ProductService(ProductRepository productRepository, SaleRepository saleRepository,
+			AppUserRepository appUserRepository, CustomerOrderRepository customerOrderRepository) {
 		this.productRepository = productRepository;
 		this.saleRepository = saleRepository;
+		this.appUserRepository = appUserRepository;
+		this.customerOrderRepository = customerOrderRepository;
 	}
 
 	public Page<ProductResponse> getProductPage(int page, int size, String sortOrder, Boolean inStockOnly, int minPrice,
@@ -44,7 +50,7 @@ public class ProductService {
 
 		Pageable pageable = createPageable(page, size, sortOrder);
 
-		Page<Product> products = findSearchProducts(keyword,minPrice,maxPrice,inStockOnly,pageable);
+		Page<Product> products = findSearchProducts(keyword, minPrice, maxPrice, inStockOnly, pageable);
 
 		return products.map(ProductResponse::from);
 	}
@@ -82,61 +88,46 @@ public class ProductService {
 		return productRepository.findAll(pageable);
 	}
 
-	private Page<Product> findSearchProducts(
-	        String keyword,
-	        int minPrice,
-	        int maxPrice,
-	        boolean inStockOnly,
-	        Pageable pageable) {
+	private Page<Product> findSearchProducts(String keyword, int minPrice, int maxPrice, boolean inStockOnly,
+			Pageable pageable) {
 
-	    if (minPrice > 0 && maxPrice > 0) {
+		if (minPrice > 0 && maxPrice > 0) {
 
-	        if (inStockOnly) {
-	            return productRepository
-	                    .findByNameContainingIgnoreCaseAndStockGreaterThanAndPriceBetween(
-	                            keyword, 0, minPrice, maxPrice, pageable);
-	        }
+			if (inStockOnly) {
+				return productRepository.findByNameContainingIgnoreCaseAndStockGreaterThanAndPriceBetween(keyword, 0,
+						minPrice, maxPrice, pageable);
+			}
 
-	        return productRepository
-	                .findByNameContainingIgnoreCaseAndPriceBetween(
-	                        keyword, minPrice, maxPrice, pageable);
-	    }
+			return productRepository.findByNameContainingIgnoreCaseAndPriceBetween(keyword, minPrice, maxPrice,
+					pageable);
+		}
 
-	    if (minPrice > 0) {
+		if (minPrice > 0) {
 
-	        if (inStockOnly) {
-	            return productRepository
-	                    .findByNameContainingIgnoreCaseAndStockGreaterThanAndPriceGreaterThanEqual(
-	                            keyword, 0, minPrice, pageable);
-	        }
+			if (inStockOnly) {
+				return productRepository.findByNameContainingIgnoreCaseAndStockGreaterThanAndPriceGreaterThanEqual(
+						keyword, 0, minPrice, pageable);
+			}
 
-	        return productRepository
-	                .findByNameContainingIgnoreCaseAndPriceGreaterThanEqual(
-	                        keyword, minPrice, pageable);
-	    }
+			return productRepository.findByNameContainingIgnoreCaseAndPriceGreaterThanEqual(keyword, minPrice,
+					pageable);
+		}
 
-	    if (maxPrice > 0) {
+		if (maxPrice > 0) {
 
-	        if (inStockOnly) {
-	            return productRepository
-	                    .findByNameContainingIgnoreCaseAndStockGreaterThanAndPriceLessThanEqual(
-	                            keyword, 0, maxPrice, pageable);
-	        }
+			if (inStockOnly) {
+				return productRepository.findByNameContainingIgnoreCaseAndStockGreaterThanAndPriceLessThanEqual(keyword,
+						0, maxPrice, pageable);
+			}
 
-	        return productRepository
-	                .findByNameContainingIgnoreCaseAndPriceLessThanEqual(
-	                        keyword, maxPrice, pageable);
-	    }
+			return productRepository.findByNameContainingIgnoreCaseAndPriceLessThanEqual(keyword, maxPrice, pageable);
+		}
 
-	    if (inStockOnly) {
-	        return productRepository
-	                .findByNameContainingIgnoreCaseAndStockGreaterThan(
-	                        keyword, 0, pageable);
-	    }
+		if (inStockOnly) {
+			return productRepository.findByNameContainingIgnoreCaseAndStockGreaterThan(keyword, 0, pageable);
+		}
 
-	    return productRepository
-	            .findByNameContainingIgnoreCase(
-	                    keyword, pageable);
+		return productRepository.findByNameContainingIgnoreCase(keyword, pageable);
 	}
 
 	private Pageable createPageable(int page, int size, String sortOrder) {
@@ -236,9 +227,53 @@ public class ProductService {
 	}
 
 	@Transactional
-	public SaleResponse purchase(Integer productId, Integer amount) {
+	public SaleResponse purchase(Integer productId, Integer amount, String username) {
 
-		Product product = productRepository.findByIdForUpdate(productId)
+		AppUser user = appUserRepository.findByUsername(username).orElseThrow();
+
+		CustomerOrder order = new CustomerOrder();
+
+		order.setUser(user);
+		order.setOrderedAt(LocalDateTime.now());
+		order.setStatus(OrderStatus.ORDERED);
+
+		customerOrderRepository.save(order);
+
+		return purchase(productId, amount, user, order);
+	}
+
+	@Transactional
+	public List<SaleResponse> purchaseCart(CartPurchaseRequest request, String username) {
+
+		List<SaleResponse> results = new ArrayList<>();
+
+		AppUser user = appUserRepository.findByUsername(username).orElseThrow();
+
+		CustomerOrder order = new CustomerOrder();
+
+		order.setUser(user);
+		order.setOrderedAt(LocalDateTime.now());
+		order.setStatus(OrderStatus.ORDERED);
+
+		customerOrderRepository.save(order);
+
+		for (CartItemRequest item : request.getItems()) {
+
+			SaleResponse sale = purchase(item.getProductId(), item.getAmount(), user, order);
+
+			results.add(sale);
+		}
+
+		return results;
+	}
+
+	private SaleResponse purchase(Integer id, int amount, AppUser user, CustomerOrder order) {
+
+		if (amount < 1) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "購入数は1以上にしてください");
+		}
+
+		Product product = productRepository.findByIdForUpdate(id)
 				.orElseThrow(() -> new ProductNotFoundException("商品が見つかりません"));
 
 		if (product.getStock() < amount) {
@@ -251,14 +286,17 @@ public class ProductService {
 		Sale sale = new Sale();
 		sale.setProduct(product);
 		sale.setAmount(amount);
-		sale.setPrice(product.getprice());
+		sale.setPrice(product.getPrice());
 		sale.setProductName(product.getName());
-		sale.setSales(product.getprice() * amount);
+		sale.setSales(product.getPrice() * amount);
 		sale.setSoldAt(LocalDateTime.now());
+		sale.setUser(user);
+		sale.setOrder(order);
 
 		Sale savedSale = saleRepository.save(sale);
 
 		return SaleResponse.from(savedSale);
+
 	}
 
 }

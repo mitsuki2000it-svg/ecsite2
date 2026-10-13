@@ -20,15 +20,24 @@ public class Sale {
 	@JoinColumn(name = "product_id")
 	private Product product;
 
-	private Integer amount;
+	@ManyToOne
+	@JoinColumn(name = "user_id")
+	private AppUser user;
 	
+	@ManyToOne
+	@JoinColumn(name = "order_id")
+	private CustomerOrder order;
+
+	private Integer amount;
+
 	private Integer price;
 
 	private String productName;
 
 	private Integer sales;
-	
+
 	private LocalDateTime soldAt;
+	
 
 	public Integer getId() {
 		return id;
@@ -85,5 +94,22 @@ public class Sale {
 	public void setSoldAt(LocalDateTime soldAt) {
 		this.soldAt = soldAt;
 	}
+
+	public AppUser getUser() {
+		return user;
+	}
+
+	public void setUser(AppUser user) {
+		this.user = user;
+	}
+
+	public CustomerOrder getOrder() {
+		return order;
+	}
+
+	public void setOrder(CustomerOrder order) {
+		this.order = order;
+	}
+
 
 }
