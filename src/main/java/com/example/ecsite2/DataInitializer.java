@@ -3,12 +3,16 @@ package com.example.ecsite2;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
 
 	private final AppUserRepository appUserRepository;
 	private final PasswordEncoder passwordEncoder;
+
+	@Value("${ADMIN_PASSWORD}")
+	private String adminPassword;
 
 	public DataInitializer(AppUserRepository appUserRepository, PasswordEncoder passwordEncoder) {
 
@@ -19,18 +23,15 @@ public class DataInitializer implements CommandLineRunner {
 	@Override
 	public void run(String... args) {
 
-		if (appUserRepository.findByUsername("admin").isEmpty()) {
+		AppUser admin = appUserRepository.findByUsername("admin").orElse(new AppUser());
 
-			AppUser admin = new AppUser();
+		admin.setUsername("admin");
 
-			admin.setUsername("admin");
+		admin.setPassword(passwordEncoder.encode(adminPassword));
 
-			admin.setPassword(passwordEncoder.encode("admin1234"));
+		admin.setRole("ADMIN");
 
-			admin.setRole("ADMIN");
-
-			appUserRepository.save(admin);
-		}
-
+		appUserRepository.save(admin);
 	}
+
 }
