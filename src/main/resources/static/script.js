@@ -199,11 +199,12 @@ function displayProducts(products) {
 		id="amount-${product.id}"
 		value="1"
 		min="1"
+		oninput="hideOrderConfirm()"
 		>
 
 		<button
 		class="buy-button"
-		onclick="purchase(${product.id})"
+		onclick="showSingleOrderConfirm(${product.id})"
 		${product.stock === 0 ? "disabled" : ""}
 		>
 		${product.stock === 0 ? "売り切れ" : "購入"}
@@ -233,15 +234,8 @@ async function purchaseCart() {
 		return;
 	}
 
-	const confirmed =
-		confirm("カートの商品を購入しますか?");
-
-	if (!confirmed) {
-		return;
-	}
-
 	const shippingAddress =
-		document.getElementById("shipping-adress").value.trim();
+		document.getElementById("shipping-address").value.trim();
 
 	if (shippingAddress === "") {
 		alert("配送先住所を入力してください");
@@ -285,6 +279,8 @@ async function purchaseCart() {
 
 			cart = [];
 
+			document.getElementById("order-confirm-area").hidden = true;
+
 			displayCart();
 			loadProducts();
 			loadMySales();
@@ -297,6 +293,13 @@ async function purchaseCart() {
 
 }
 function displayCart() {
+
+	const confirmArea =
+		document.getElementById("order-confirm-area");
+
+	if (confirmArea) {
+		confirmArea.hidden = true;
+	}
 
 	const purchaseButton =
 		document.getElementById("cart-purchase-button");
@@ -510,6 +513,7 @@ async function purchase(productId) {
 
 		.then(data => {
 
+			document.getElementById("order-confirm-area").hidden = true;
 
 			alert(
 				data.productName + "を購入しました！"
@@ -526,6 +530,139 @@ async function purchase(productId) {
 
 			alert(error.message);
 		});
+}
+
+function hideOrderConfirm() {
+
+	document.getElementById("order-confirm-area").hidden = true;
+
+}
+
+async function showSingleOrderConfirm(productId) {
+
+	const amountInput =
+		document.getElementById(`amount-${productId}`);
+
+	const amount =
+		Number(amountInput.value);
+
+	const shippingAddress =
+		document.getElementById("shipping-address").value.trim();
+
+	if (amount < 1) {
+		alert("購入数は1以上にしてください");
+		return;
+	}
+	if (shippingAddress === "") {
+		alert("配送先住所を入力してください");
+		return;
+	}
+
+	const response =
+		await fetch(`/products/${productId}`);
+
+	const product =
+		await response.json();
+
+	const confirmArea =
+		document.getElementById("order-confirm-area");
+
+	const confirmItems =
+		document.getElementById("order-confirm-items");
+
+	const confirmTotal =
+		document.getElementById("order-confirm-total");
+
+	const confirmAddress =
+		document.getElementById("order-confirm-address");
+
+	const confirmPurchaseButton =
+		document.getElementById("confirm-purchase-button");
+
+	const subtotal =
+		product.price * amount;
+
+	confirmItems.innerHTML = `
+		<p>
+		${product.name}
+		${amount}個
+		${subtotal}円
+		</p>
+		`;
+
+	confirmTotal.textContent =
+		`合計金額:${subtotal}円`;
+
+	confirmAddress.textContent =
+		`配送先:${shippingAddress}`;
+
+	confirmPurchaseButton.onclick =
+		() => purchase(productId);
+
+	confirmArea.hidden = false;
+}
+function showOrderConfirm() {
+
+	const confirmArea =
+		document.getElementById("order-confirm-area");
+
+	const confirmItems =
+		document.getElementById("order-confirm-items");
+
+	const confirmTotal =
+		document.getElementById("order-confirm-total");
+
+	const confirmAddress =
+		document.getElementById("order-confirm-address");
+
+	const shippingAddress =
+		document.getElementById("shipping-address").value.trim();
+
+	if (cart.length === 0) {
+		alert("カートが空です");
+		return;
+	}
+
+	if (shippingAddress === "") {
+		alert("配送先住所を入力してください");
+		return;
+	}
+
+	let total = 0;
+	let itemsHtml = "";
+
+	cart.forEach(item => {
+
+		const subtotal =
+			item.product.price * item.amount;
+
+		total += subtotal;
+
+		itemsHtml += `
+		
+		<p>
+		${item.product.name}
+		${item.amount}個
+		${subtotal}円
+		</p>
+		`;
+	});
+
+	confirmItems.innerHTML = itemsHtml;
+
+	confirmTotal.textContent =
+		`合計金額:${total}円`;
+
+	confirmAddress.textContent =
+		`配送先:${shippingAddress}`;
+
+	const confirmPurchaseButton =
+		document.getElementById("confirm-purchase-button");
+
+	confirmPurchaseButton.onclick = purchaseCart;
+
+	confirmArea.hidden = false;
+
 }
 
 async function loadMySales() {
