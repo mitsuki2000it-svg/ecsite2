@@ -11,11 +11,13 @@ https://ecsite2-production.up.railway.app
 
 - 商品追加 ・ 編集 ・ 削除
 - 商品検索
--　価格範囲検索
+- 価格範囲検索
 - 在庫あり絞り込み
 - ソート
 - ページネーション
 - カート購入
+- 注文内容確認画面
+- 配送先住所の入力　・　保存
 - ユーザー登録
 - ログイン　/ ログアウト
 - USER / ADMIN 権限管理
@@ -41,7 +43,7 @@ https://ecsite2-production.up.railway.app
 ## テスト
 
 - JUnitを使った単体テスト
-- Mopckitoを使ったRepositoryのMock
+- Mockitoを使ったRepositoryのMock
 - 正常系 / 異常系テスト
 - ArgumentCaptorを使った引数確認
 - H2を使った総合テスト
@@ -55,14 +57,17 @@ https://ecsite2-production.up.railway.app
 - キャンセル時に購入数分の在庫を戻す
 - USER / ADMINで権限を分離
 - CSRFを有効にしたままPOST / PUT / DELETEを実装
-- 購入時点の商品名　・　価格をSaleへ保存
+- 購入時点の商品名 ・ 価格をSaleへ保存
 - 単体テストと統合テストの両方を実装
+- 単品購入 ・ カート購入の両方に注文確認画面を実装
+- 数量や配送先を変更した場合は古い注文確認画面を非表示にする
+- 注文ごとに配送先住所を保存
 
 ## 開発環境
 
 - Java 17
 - Spring Boot
-- Eclips
+- Eclipse
 - VS code
 - MySQL
 
@@ -88,9 +93,7 @@ http://localhost:8080
 
 ## 今後追加したい機能
 
-- 配送先住所の登録
 - 決済機能
-- 本番環境へのデプロイ
 
 ## 画面イメージ
 
