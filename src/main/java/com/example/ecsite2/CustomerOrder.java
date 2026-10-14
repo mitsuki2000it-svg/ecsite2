@@ -28,6 +28,8 @@ public class CustomerOrder {
 	@Enumerated(EnumType.STRING)
 	private OrderStatus status;
 	
+	private String shippingAddress;
+	
 	public CustomerOrder() {
 	}
 
@@ -61,6 +63,14 @@ public class CustomerOrder {
 
 	public void setStatus(OrderStatus status) {
 		this.status = status;
+	}
+
+	public String getShippingAddress() {
+		return shippingAddress;
+	}
+
+	public void setShippingAddress(String shippingAddress) {
+		this.shippingAddress = shippingAddress;
 	}
 
 	

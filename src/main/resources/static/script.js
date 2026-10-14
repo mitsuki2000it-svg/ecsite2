@@ -240,6 +240,14 @@ async function purchaseCart() {
 		return;
 	}
 
+	const shippingAddress =
+		document.getElementById("shipping-adress").value.trim();
+
+	if (shippingAddress === "") {
+		alert("配送先住所を入力してください");
+		return;
+	}
+
 	const items = cart.map(item => {
 		return {
 			productId: item.product.id,
@@ -256,7 +264,8 @@ async function purchaseCart() {
 		},
 
 		body: JSON.stringify({
-			items: items
+			items: items,
+			shippingAddress
 		})
 	})
 
@@ -456,6 +465,13 @@ async function purchase(productId) {
 
 	const amount = Number(amountInput.value);
 
+	const shippingAddress = document.getElementById("shipping-address").value.trim();
+
+	if (shippingAddress === "") {
+		alert("配送先住所を入力してください");
+		return;
+	}
+
 	if (amount < 1) {
 		alert("購入数は1以上にしてください");
 		return;
@@ -473,7 +489,8 @@ async function purchase(productId) {
 		},
 
 		body: JSON.stringify({
-			amount
+			amount,
+			shippingAddress
 		})
 	})
 
@@ -585,6 +602,7 @@ async function loadMySales() {
 				</h3>
 
 				<p>状態:${statusText}</p>
+				<p>配送先:${firstSale.shippingAddress ?? "住所なし"}</p>
 
 				${itemsHtml}
 

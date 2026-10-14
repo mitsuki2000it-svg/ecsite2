@@ -227,7 +227,7 @@ public class ProductService {
 	}
 
 	@Transactional
-	public SaleResponse purchase(Integer productId, Integer amount, String username) {
+	public SaleResponse purchase(Integer productId, Integer amount, String username,String shippingAddress) {
 
 		AppUser user = appUserRepository.findByUsername(username).orElseThrow();
 
@@ -236,6 +236,7 @@ public class ProductService {
 		order.setUser(user);
 		order.setOrderedAt(LocalDateTime.now());
 		order.setStatus(OrderStatus.ORDERED);
+		order.setShippingAddress(shippingAddress);
 
 		customerOrderRepository.save(order);
 
@@ -254,6 +255,7 @@ public class ProductService {
 		order.setUser(user);
 		order.setOrderedAt(LocalDateTime.now());
 		order.setStatus(OrderStatus.ORDERED);
+		order.setShippingAddress(request.getShippingAddress());
 
 		customerOrderRepository.save(order);
 

@@ -129,6 +129,8 @@ public class ProductServiceIntegrationTest {
 		item2.setAmount(1);
 
 		CartPurchaseRequest request = new CartPurchaseRequest();
+		
+		request.setShippingAddress("千葉県テスト市1-2-3");
 
 		request.setItems(List.of(item1, item2));
 
@@ -151,6 +153,7 @@ public class ProductServiceIntegrationTest {
 		
 		assertEquals(OrderStatus.ORDERED,savedOrder.getStatus());
 		assertEquals("testuser",savedOrder.getUser().getUsername());
+		assertEquals("千葉県テスト市1-2-3",savedOrder.getShippingAddress());
 		
 		assertEquals("マウス",savedSales.get(0).getProductName());
 		assertEquals(500,savedSales.get(0).getPrice());

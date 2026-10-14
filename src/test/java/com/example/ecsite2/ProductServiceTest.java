@@ -56,7 +56,7 @@ public class ProductServiceTest {
 
 		when(saleRepository.save(any(Sale.class))).thenAnswer(inovation -> inovation.getArgument(0));
 
-		SaleResponse result = productService.purchase(1, 3, "testuser");
+		SaleResponse result = productService.purchase(1, 3, "testuser","千葉県テスト市1-2-3");
 
 		assertEquals(7, product.getStock());
 		assertEquals(3, result.getAmount());
@@ -84,7 +84,7 @@ public class ProductServiceTest {
 		when(appUserRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
 		when(productRepository.findByIdForUpdate(1)).thenReturn(Optional.of(product));
 
-		assertThrows(ResponseStatusException.class, () -> productService.purchase(1, 3, "testuser"));
+		assertThrows(ResponseStatusException.class, () -> productService.purchase(1, 3, "testuser","千葉県テスト市1-2-3"));
 
 		verify(saleRepository, never()).save(any(Sale.class));
 
@@ -100,7 +100,7 @@ public class ProductServiceTest {
 
 		when(appUserRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
 
-		assertThrows(ResponseStatusException.class, () -> productService.purchase(1, 0, "testuser"));
+		assertThrows(ResponseStatusException.class, () -> productService.purchase(1, 0, "testuser","千葉県テスト市1-2-3"));
 
 		verify(productRepository, never()).findByIdForUpdate(1);
 
@@ -117,7 +117,7 @@ public class ProductServiceTest {
 
 		when(productRepository.findByIdForUpdate(999)).thenReturn(Optional.empty());
 
-		assertThrows(ProductNotFoundException.class, () -> productService.purchase(999, 1, "testuser"));
+		assertThrows(ProductNotFoundException.class, () -> productService.purchase(999, 1, "testuser","千葉県テスト市1-2-3"));
 
 		verify(saleRepository, never()).save(any(Sale.class));
 

@@ -14,6 +14,7 @@ public class SaleResponse {
 	private Integer orderId;
 	private LocalDateTime orderedAt;
 	private String status;
+	private String shippingAddress;
 
 	public static SaleResponse from(Sale sale) {
 		SaleResponse response = new SaleResponse();
@@ -31,6 +32,8 @@ public class SaleResponse {
 			response.setOrderId(sale.getOrder().getId());
 
 			response.setOrderedAt(sale.getOrder().getOrderedAt());
+
+			response.setShippingAddress(sale.getOrder().getShippingAddress());
 
 			if (sale.getOrder().getStatus() != null) {
 				response.setStatus(sale.getOrder().getStatus().name());
@@ -117,6 +120,14 @@ public class SaleResponse {
 
 	public void setStatus(String status) {
 		this.status = status;
+	}
+
+	public String getShippingAddress() {
+		return shippingAddress;
+	}
+
+	public void setShippingAddress(String shippingAddress) {
+		this.shippingAddress = shippingAddress;
 	}
 
 }

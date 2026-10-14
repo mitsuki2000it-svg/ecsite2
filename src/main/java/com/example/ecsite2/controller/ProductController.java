@@ -49,7 +49,7 @@ public class ProductController {
 
 		String username = authentication.getName();
 
-		return productService.purchase(id, request.getAmount(), username);
+		return productService.purchase(id, request.getAmount(), username,request.getShippingAddress());
 	}
 
 	@GetMapping("/page")

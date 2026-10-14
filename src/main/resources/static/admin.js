@@ -259,6 +259,7 @@ async function loadSales() {
         
         <p>購入者:${firstSale.userName ?? "不明"}</p>
         <p>状態:${statusText}</p>
+        <p>配送先:${firstSale.shippingAddress ?? "住所なし"}</p>
         
         ${itemHtml}
         
