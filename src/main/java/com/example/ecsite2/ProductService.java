@@ -22,13 +22,15 @@ public class ProductService {
 	private final SaleRepository saleRepository;
 	private final AppUserRepository appUserRepository;
 	private final CustomerOrderRepository customerOrderRepository;
+	private final PaymentRepository paymentRepository;
 
 	public ProductService(ProductRepository productRepository, SaleRepository saleRepository,
-			AppUserRepository appUserRepository, CustomerOrderRepository customerOrderRepository) {
+			AppUserRepository appUserRepository, CustomerOrderRepository customerOrderRepository,PaymentRepository paymentRepository) {
 		this.productRepository = productRepository;
 		this.saleRepository = saleRepository;
 		this.appUserRepository = appUserRepository;
 		this.customerOrderRepository = customerOrderRepository;
+		this.paymentRepository = paymentRepository;
 	}
 
 	public Page<ProductResponse> getProductPage(int page, int size, String sortOrder, Boolean inStockOnly, int minPrice,
@@ -240,8 +242,18 @@ public class ProductService {
 		order.setShippingAddress(shippingAddress);
 
 		customerOrderRepository.save(order);
+		
+		SaleResponse result = purchase(productId,amount,user,order);
+		
+		Payment payment = new Payment();
+		
+		payment.setOrder(order);
+		payment.setAmount(result.getSales());
+		payment.setStatus(PaymentStatus.UNPAID);
+		
+		paymentRepository.save(payment);
 
-		return purchase(productId, amount, user, order);
+		return result;
 	}
 
 	@Transactional
@@ -260,13 +272,24 @@ public class ProductService {
 		order.setShippingAddress(request.getShippingAddress());
 
 		customerOrderRepository.save(order);
+		
+		int totalAmount = 0;
 
 		for (CartItemRequest item : request.getItems()) {
 
 			SaleResponse sale = purchase(item.getProductId(), item.getAmount(), user, order);
 
 			results.add(sale);
+			
+			totalAmount += sale.getSales();
 		}
+		Payment payment = new Payment();
+		
+		payment.setOrder(order);
+		payment.setAmount(totalAmount);
+		payment.setStatus(PaymentStatus.UNPAID);
+		
+		paymentRepository.save(payment);
 
 		return results;
 	}

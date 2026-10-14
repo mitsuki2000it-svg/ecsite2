@@ -34,6 +34,9 @@ public class ProductServiceTest {
 
 	@Mock
 	private CustomerOrderRepository customerOrderRepository;
+	
+	@Mock
+	private PaymentRepository paymentRepository;
 
 	@InjectMocks
 	private ProductService productService;

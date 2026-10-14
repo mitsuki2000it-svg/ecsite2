@@ -14,13 +14,15 @@ public class CustomerOrderService {
 	private final CustomerOrderRepository customerOrderRepository;
 	private final SaleRepository saleRepository;
 	private final ProductRepository productRepository;
+	private final PaymentRepository paymentRepository;
 
 	public CustomerOrderService(CustomerOrderRepository customerOrderRepository, SaleRepository saleRepository,
-			ProductRepository productRepository) {
+			ProductRepository productRepository, PaymentRepository paymentRepository) {
 
 		this.customerOrderRepository = customerOrderRepository;
 		this.saleRepository = saleRepository;
 		this.productRepository = productRepository;
+		this.paymentRepository = paymentRepository;
 
 	}
 
@@ -70,9 +72,34 @@ public class CustomerOrderService {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "この注文の支払いはできません");
 		}
 
-		if (order.getPaymentStatus() != PaymentStatus.UNPAID) {
+		Payment payment = paymentRepository.findByOrder_Id(orderId).orElse(null);
+
+		if (payment == null) {
+
+			if (order.getPaymentStatus() != PaymentStatus.UNPAID) {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "支払い情報がありません");
+			}
+
+			List<Sale> sales = saleRepository.findByOrder_Id(orderId);
+
+			int totalAmount = 0;
+
+			for (Sale sale : sales) {
+				totalAmount += sale.getSales();
+			}
+
+			payment = new Payment();
+			payment.setOrder(order);
+			payment.setAmount(totalAmount);
+			payment.setStatus(PaymentStatus.UNPAID);
+
+			paymentRepository.save(payment);
+		}
+		if (payment.getStatus() != PaymentStatus.UNPAID) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "この注文は支払いできません");
 		}
+
+		payment.setStatus(PaymentStatus.PAID);
 
 		order.setPaymentStatus(PaymentStatus.PAID);
 

@@ -30,6 +30,7 @@ public class SaleResponse {
 			response.setUserName(sale.getUser().getUsername());
 		}
 		if (sale.getOrder() != null) {
+
 			response.setOrderId(sale.getOrder().getId());
 
 			response.setOrderedAt(sale.getOrder().getOrderedAt());
@@ -37,10 +38,16 @@ public class SaleResponse {
 			response.setShippingAddress(sale.getOrder().getShippingAddress());
 
 			if (sale.getOrder().getStatus() != null) {
+
 				response.setStatus(sale.getOrder().getStatus().name());
 			}
-			
-			if(sale.getOrder().getPaymentStatus() != null) {
+
+			if (sale.getOrder().getPayment() != null && sale.getOrder().getPayment() != null) {
+
+				response.setPaymentStatus(sale.getOrder().getPayment().getStatus().name());
+
+			} else if (sale.getOrder().getPaymentStatus() != null) {
+
 				response.setPaymentStatus(sale.getOrder().getPaymentStatus().name());
 			}
 		}

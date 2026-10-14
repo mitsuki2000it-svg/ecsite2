@@ -1,8 +1,8 @@
 package com.example.ecsite2;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 
@@ -31,6 +31,9 @@ public class ProductServiceIntegrationTest {
 
 	@Autowired
 	private CustomerOrderRepository customerOrderRepository;
+	
+	@Autowired
+	private PaymentRepository paymentRepository;
 
 	@Test
 	void contextLoads() {
@@ -89,10 +92,11 @@ public class ProductServiceIntegrationTest {
 	@BeforeEach
 	void cleanDatabase() {
 
-		saleRepository.deleteAll();
-		customerOrderRepository.deleteAll();
-		productRepository.deleteAll();
-		appUserRepository.deleteAll();
+		saleRepository.deleteAllInBatch();
+		paymentRepository.deleteAllInBatch();
+		customerOrderRepository.deleteAllInBatch();
+		productRepository.deleteAllInBatch();
+		appUserRepository.deleteAllInBatch();
 
 	}
 

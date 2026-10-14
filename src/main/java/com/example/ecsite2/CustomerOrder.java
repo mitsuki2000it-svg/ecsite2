@@ -2,6 +2,8 @@ package com.example.ecsite2;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -10,6 +12,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -30,6 +33,10 @@ public class CustomerOrder {
 
 	@Enumerated(EnumType.STRING)
 	private PaymentStatus paymentStatus;
+	
+	@JsonIgnore
+	@OneToOne(mappedBy = "order")
+	private Payment payment;
 
 	private String shippingAddress;
 
@@ -82,6 +89,14 @@ public class CustomerOrder {
 
 	public void setPaymentStatus(PaymentStatus paymentStatus) {
 		this.paymentStatus = paymentStatus;
+	}
+
+	public Payment getPayment() {
+		return payment;
+	}
+
+	public void setPayment(Payment payment) {
+		this.payment = payment;
 	}
 
 }
