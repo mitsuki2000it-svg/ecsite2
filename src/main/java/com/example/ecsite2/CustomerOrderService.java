@@ -61,4 +61,21 @@ public class CustomerOrderService {
 		return order;
 	}
 
+	@Transactional
+	public void pay(Integer orderId, String username) {
+
+		CustomerOrder order = customerOrderRepository.findById(orderId).orElseThrow();
+
+		if (order.getUser() == null || !order.getUser().getUsername().equals(username)) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "この注文の支払いはできません");
+		}
+
+		if (order.getPaymentStatus() != PaymentStatus.UNPAID) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "この注文は支払いできません");
+		}
+
+		order.setPaymentStatus(PaymentStatus.PAID);
+
+	}
+
 }

@@ -249,6 +249,13 @@ async function loadSales() {
                 `
                 : "";
 
+        const paymentStatusText =
+            firstSale.paymentStatus === "UNPAID"
+                ? "未払い"
+                : firstSale.paymentStatus === "PAID"
+                    ? "支払い済み"
+                    : "支払い情報なし";
+
         salesElement.innerHTML += `
         <div class="sale-card">
         
@@ -259,6 +266,7 @@ async function loadSales() {
         
         <p>購入者:${firstSale.userName ?? "不明"}</p>
         <p>状態:${statusText}</p>
+        <p>支払い:${paymentStatusText}</p>
         <p>配送先:${firstSale.shippingAddress ?? "住所なし"}</p>
         
         ${itemHtml}

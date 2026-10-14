@@ -236,6 +236,7 @@ public class ProductService {
 		order.setUser(user);
 		order.setOrderedAt(LocalDateTime.now());
 		order.setStatus(OrderStatus.ORDERED);
+		order.setPaymentStatus(PaymentStatus.UNPAID);
 		order.setShippingAddress(shippingAddress);
 
 		customerOrderRepository.save(order);
@@ -255,6 +256,7 @@ public class ProductService {
 		order.setUser(user);
 		order.setOrderedAt(LocalDateTime.now());
 		order.setStatus(OrderStatus.ORDERED);
+		order.setPaymentStatus(PaymentStatus.UNPAID);
 		order.setShippingAddress(request.getShippingAddress());
 
 		customerOrderRepository.save(order);

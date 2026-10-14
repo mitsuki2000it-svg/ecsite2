@@ -665,6 +665,35 @@ function showOrderConfirm() {
 
 }
 
+async function payOrder(orderId) {
+
+	const csrf =
+		await getCsrfToken();
+
+	fetch(`/orders/${orderId}/pay`, {
+
+		method: "PUT",
+
+		headers: {
+			[csrf.headerName]: csrf.token
+		}
+
+	})
+		.then(response => {
+
+			if (!response.ok) {
+				throw new Error("支払いに失敗しました");
+			}
+
+			alert("支払いが完了しました");
+
+			loadMySales();
+		})
+		.catch(error => {
+			alert(error.message);
+		});
+}
+
 async function loadMySales() {
 
 	const response = await fetch("/my-sales");
@@ -708,6 +737,7 @@ async function loadMySales() {
 
 		let itemsHtml = "";
 		let orderTotal = 0;
+
 		const statusText =
 			firstSale.status === "ORDERED"
 				? "注文済み"
@@ -716,6 +746,20 @@ async function loadMySales() {
 					: firstSale.status === "CANCELLED"
 						? "キャンセル済み"
 						: "注文情報なし"
+
+		const paymentStatusText =
+			firstSale.paymentStatus === "UNPAID"
+				? "未払い"
+				: firstSale.paymentStatus === "PAID"
+					? "支払い済み"
+					: "支払い情報なし"
+
+		const paymentButtonHtml =
+			firstSale.paymentStatus === "UNPAID" && firstSale.orderId != null
+				? `<button onclick="payOrder(${firstSale.orderId})">
+		               支払う
+		            </button>`
+				: "";
 
 		orderSales.forEach(sale => {
 
@@ -739,7 +783,10 @@ async function loadMySales() {
 				</h3>
 
 				<p>状態:${statusText}</p>
+				<p>支払い:${paymentStatusText}</p>
 				<p>配送先:${firstSale.shippingAddress ?? "住所なし"}</p>
+
+				${paymentButtonHtml}
 
 				${itemsHtml}
 

@@ -23,13 +23,16 @@ public class CustomerOrder {
 	@ManyToOne
 	@JoinColumn(name = "user_id")
 	private AppUser user;
-	
+
 	private LocalDateTime orderedAt;
 	@Enumerated(EnumType.STRING)
 	private OrderStatus status;
-	
+
+	@Enumerated(EnumType.STRING)
+	private PaymentStatus paymentStatus;
+
 	private String shippingAddress;
-	
+
 	public CustomerOrder() {
 	}
 
@@ -73,8 +76,12 @@ public class CustomerOrder {
 		this.shippingAddress = shippingAddress;
 	}
 
-	
-	
-	
+	public PaymentStatus getPaymentStatus() {
+		return paymentStatus;
+	}
+
+	public void setPaymentStatus(PaymentStatus paymentStatus) {
+		this.paymentStatus = paymentStatus;
+	}
 
 }

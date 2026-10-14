@@ -1,5 +1,6 @@
 package com.example.ecsite2.controller;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,6 +34,14 @@ public class CustomerOrderController {
 		customerOrderService.cancel(orderId);
 
 		return "注文をキャンセルしました";
+	}
+
+	@PutMapping("/{orderId}/pay")
+	public void pay(@PathVariable Integer orderId, Authentication authentication) {
+
+		String username = authentication.getName();
+
+		customerOrderService.pay(orderId, username);
 	}
 
 }

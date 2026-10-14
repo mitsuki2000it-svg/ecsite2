@@ -142,13 +142,67 @@ public class CustomerOrderServiceTest {
 		when(productRepository.findByIdForUpdate(2)).thenReturn(Optional.of(product2));
 
 		CustomerOrder result = customerOrderService.cancel(1);
-		
-		assertEquals(OrderStatus.CANCELLED,result.getStatus());
-		assertEquals(10,product1.getStock());
-		assertEquals(6,product2.getStock());
-		
+
+		assertEquals(OrderStatus.CANCELLED, result.getStatus());
+		assertEquals(10, product1.getStock());
+		assertEquals(6, product2.getStock());
+
 		verify(productRepository).findByIdForUpdate(1);
 		verify(productRepository).findByIdForUpdate(2);
+
+	}
+
+	@Test
+	void payTest() {
+
+		AppUser user = new AppUser();
+		user.setUsername("testuser");
+
+		CustomerOrder order = new CustomerOrder();
+		order.setUser(user);
+		order.setPaymentStatus(PaymentStatus.UNPAID);
+
+		when(customerOrderRepository.findById(1)).thenReturn(Optional.of(order));
+
+		customerOrderService.pay(1, "testuser");
+
+		assertEquals(PaymentStatus.PAID, order.getPaymentStatus());
+
+		verify(customerOrderRepository).findById(1);
+	}
+
+	@Test
+	void payOtherUserErrorTest() {
+
+		AppUser user = new AppUser();
+		user.setUsername("userA");
+
+		CustomerOrder order = new CustomerOrder();
+		order.setUser(user);
+		order.setPaymentStatus(PaymentStatus.UNPAID);
+
+		when(customerOrderRepository.findById(1)).thenReturn(Optional.of(order));
+
+		assertThrows(ResponseStatusException.class, () -> customerOrderService.pay(1, "userB"));
+
+		assertEquals(PaymentStatus.UNPAID, order.getPaymentStatus());
+	}
+
+	@Test
+	void payAlreadyPaidErrorTest() {
+
+		AppUser user = new AppUser();
+		user.setUsername("testuser");
+
+		CustomerOrder order = new CustomerOrder();
+		order.setUser(user);
+		order.setPaymentStatus(PaymentStatus.PAID);
+
+		when(customerOrderRepository.findById(1)).thenReturn(Optional.of(order));
+
+		assertThrows(ResponseStatusException.class, () -> customerOrderService.pay(1, "testuser"));
+
+		assertEquals(PaymentStatus.PAID, order.getPaymentStatus());
 
 	}
 
