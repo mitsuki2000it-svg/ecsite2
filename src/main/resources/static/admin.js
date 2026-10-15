@@ -254,7 +254,9 @@ async function loadSales() {
                 ? "未払い"
                 : firstSale.paymentStatus === "PAID"
                     ? "支払い済み"
-                    : "支払い情報なし";
+                    : firstSale.paymentStatus === "REFUNDED"
+                        ? "返金済み"
+                        : "支払い情報なし";
 
         salesElement.innerHTML += `
         <div class="sale-card">

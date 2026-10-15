@@ -752,7 +752,9 @@ async function loadMySales() {
 				? "未払い"
 				: firstSale.paymentStatus === "PAID"
 					? "支払い済み"
-					: "支払い情報なし"
+					: firstSale.paymentStatus === "REFUNDED"
+						? "返金済み"
+						: "支払い情報なし";
 
 		const paymentButtonHtml =
 			firstSale.paymentStatus === "UNPAID" && firstSale.orderId != null

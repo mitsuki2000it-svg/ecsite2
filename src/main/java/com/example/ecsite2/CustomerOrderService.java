@@ -57,7 +57,17 @@ public class CustomerOrderService {
 
 			product.setStock(product.getStock() + sale.getAmount());
 		}
-
+		
+		Payment payment = order.getPayment();
+		
+		if(payment != null && payment.getStatus() == PaymentStatus.PAID) {
+			payment.setStatus(PaymentStatus.REFUNDED);
+		}
+		
+		if(order.getPaymentStatus() == PaymentStatus.PAID) {
+			order.setPaymentStatus(PaymentStatus.REFUNDED);
+		}
+		
 		order.setStatus(OrderStatus.CANCELLED);
 
 		return order;
