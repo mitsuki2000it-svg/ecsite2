@@ -11,22 +11,38 @@
 
 <body>
 
-	<a id="admin-link" href="admin.html" hidden>
-		管理画面へ
-	</a>
+	<header class="site-header">
 
-	<form id="logout-form" action="/logout" method="post">
+		<div class="header-inner">
 
-		<button type="submit">
-			ログアウト
-		</button>
+			<a class="site-title" href="/">
+				EC SITE
+			</a>
 
-	</form>
+			<div class="header-user-area">
 
-	<p>
-		ログイン中:
-		<span id="current-user"></span>
-	</p>
+				<a id="admin-link" href="admin.html" hidden>
+					管理画面へ
+				</a>
+
+				<p>
+					ログイン中:
+					<span id="current-user"></span>
+				</p>
+
+				<form id="logout-form" action="/logout" method="post">
+
+					<button type="submit">
+						ログアウト
+					</button>
+
+				</form>
+
+			</div>
+
+		</div>
+
+	</header>
 
 	<div class="search-area">
 		<h2>商品検索</h2>

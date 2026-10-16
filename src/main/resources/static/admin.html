@@ -11,13 +11,35 @@
 
 <body>
 
-	<form id="logout-form" action="/logout" method="post">
+	<hader clss="site-header">
 
-		<button type="submit">
-			ログアウト
-		</button>
+		<div class="header-inner">
 
-	</form>
+			<a class="site-title" href="/">
+				EC SITE
+			</a>
+
+			<div class="header-user-area">
+
+				<a href="/">
+					商品一覧へ
+				</a>
+
+				<span class="login-user">
+					管理画面
+				</span>
+
+				<form id="logout-form" action="/logout" method="post">
+					<button type="submit" class="logout-button">
+						ログアウト
+					</button>
+				</form>
+
+			</div>
+
+		</div>
+
+	</header>
 
 	<h1>管理画面</h1>
 

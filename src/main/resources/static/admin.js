@@ -14,38 +14,73 @@ async function loadAdminProducts() {
 
 function displayAdminProducts(products) {
 
-    adminProductElement.innerHTML = "";
+    if (products.length === 0) {
+        adminProductElement.innerHTML =
+            `<p class="empty-message">商品がありません</p>`;
+        return;
+    }
+
+    let rows = "";
 
     products.forEach(product => {
 
-        adminProductElement.innerHTML += `
-        <div class="product-card">
-        
-        <h2>${product.name}</h2>
-        
-        <p class="product-price">
-        ${product.price}円
-        </p>
-        
-        <p class="product-stock">
-        在庫:${product.stock}
-        </p>
-        
-        <button
-        class="edit-button"
-        onclick="editProduct(${product.id})">
-        編集
-        </button>
-        
-        <button
-        class="danger-button"
-        onclick="deleteProduct(${product.id})">
-        削除
-        </button>
+        rows += `
+    <tr>
 
-        </div>
-        `;
+    <td>
+    ${product.name}
+    </td>
+    
+    <td>
+    ${product.price}円
+    </td>
+    
+    <td>
+    ${product.stock}
+    </td>
+    
+    <td class="admin-product-actions">
+    
+    <button
+    class="edit-button"
+    onclick="editProduct(${product.id})">
+    編集
+    </button>
+    
+    <button
+    class="danger-button"
+    onclick="deleteProduct(${product.id})">
+    削除
+    </button>
+    
+    </td>
+    </tr>
+    `;
+
     });
+
+    adminProductElement.innerHTML = `
+    <div class="admin-table-wrapper">
+    
+    <table class="admin-product-table">
+    
+    <thead>
+    <tr>
+    <th>商品名</th>
+    <th>価格</th>
+    <th>在庫</th>
+    <th>操作</th>
+    </tr>
+    </thead>
+    
+    <tbody>
+    ${rows}
+    </tbody>
+    
+    </table>
+    
+    </div>
+    `;
 }
 async function editProduct(id) {
 
@@ -233,6 +268,7 @@ async function loadSales() {
                 ? `
         
         <button
+        class="edit-button"
         onclick="shipOrder(${firstSale.orderId})">
         発送済みにする
         </button>
@@ -243,6 +279,7 @@ async function loadSales() {
             firstSale.status === "ORDERED"
                 && firstSale.orderId != null ? `
                 <button
+                class="danger-button"
                 onclick="cancelOrder(${firstSale.orderId})">
                 キャンセルする
                 </button>
@@ -267,14 +304,14 @@ async function loadSales() {
         </h3>
         
         <p>購入者:${firstSale.userName ?? "不明"}</p>
-        <p>状態:${statusText}</p>
-        <p>支払い:${paymentStatusText}</p>
-        <p>配送先:${firstSale.shippingAddress ?? "住所なし"}</p>
+        <p class="order-status">状態:${statusText}</p>
+        <p class="payment-status">支払い:${paymentStatusText}</p>
+        <p class="order-address">配送先:${firstSale.shippingAddress ?? "住所なし"}</p>
         
         ${itemHtml}
         
-        <p>合計金額:${orderTotal}円</p>
-        <p>注文日時:${orderedAt}</p>
+        <p class="order-total">合計金額:${orderTotal}円</p>
+        <p class="order-date">注文日時:${orderedAt}</p>
         
         ${shipButton}
         ${cancelButton}
@@ -355,8 +392,11 @@ async function cancelOrder(orderId) {
         );
 
     if (!response.ok) {
-        alert("注文をキャンセルしました");
+        alert("注文をキャンセルできませんでした");
+        return;
     }
+
+    alert("注文をキャンセルしました")
 
     loadSales();
     loadAdminProducts();
