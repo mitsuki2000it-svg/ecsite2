@@ -769,7 +769,7 @@ async function loadMySales() {
 
 			itemsHtml += `
 					<p>
-					${sale.productName}
+					${escapeHtml(sale.productName)}
 					${sale.amount}個
 					${sale.sales}円
 					</p>
@@ -786,7 +786,7 @@ async function loadMySales() {
 
 				<p>状態:${statusText}</p>
 				<p>支払い:${paymentStatusText}</p>
-				<p>配送先:${firstSale.shippingAddress ?? "住所なし"}</p>
+				<p>配送先:${escapeHtml(firstSale.shippingAddress) ?? "住所なし"}</p>
 
 				${paymentButtonHtml}
 
@@ -846,6 +846,13 @@ async function setLogoutCsrfToken() {
 
 	document.getElementById("logout-form")
 		.appendChild(input);
+}
+function escapeHtml(text) {
+	const div = document.createElement("div");
+
+	div.textContent = text;
+
+	return div.innerHTML;
 }
 
 setLogoutCsrfToken();

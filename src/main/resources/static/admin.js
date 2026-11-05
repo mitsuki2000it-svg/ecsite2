@@ -28,7 +28,7 @@ function displayAdminProducts(products) {
     <tr>
 
     <td>
-    ${product.name}
+    ${escapeHtml(product.name)}
     </td>
     
     <td>
@@ -245,7 +245,7 @@ async function loadSales() {
 
             itemHtml += `
             <p>
-            ${sale.productName}
+            ${escapeHtml(sale.productName)}
             ${sale.amount}個
             ${sale.sales}円
             </p>
@@ -306,7 +306,7 @@ async function loadSales() {
         <p>購入者:${firstSale.userName ?? "不明"}</p>
         <p class="order-status">状態:${statusText}</p>
         <p class="payment-status">支払い:${paymentStatusText}</p>
-        <p class="order-address">配送先:${firstSale.shippingAddress ?? "住所なし"}</p>
+        <p class="order-address">配送先:${escapeHtml(firstSale.shippingAddress) ?? "住所なし"}</p>
         
         ${itemHtml}
         
@@ -400,6 +400,8 @@ async function cancelOrder(orderId) {
 
     loadSales();
     loadAdminProducts();
+    loadTotalSales();
+    loadSaleCount();
 
 }
 
@@ -426,6 +428,11 @@ async function setLogoutCsrfToken() {
 
     document.getElementById("logout-form")
         .appendChild(input);
+}
+function escapeHtml(text){
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
 }
 setLogoutCsrfToken();
 loadAdminProducts();

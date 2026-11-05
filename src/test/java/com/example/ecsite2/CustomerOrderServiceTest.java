@@ -15,6 +15,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,7 +29,7 @@ public class CustomerOrderServiceTest {
 
 	@Mock
 	private ProductRepository productRepository;
-	
+
 	@Mock
 	private PaymentRepository paymentRepository;
 
@@ -41,6 +42,7 @@ public class CustomerOrderServiceTest {
 		CustomerOrder order = new CustomerOrder();
 
 		order.setStatus(OrderStatus.ORDERED);
+		order.setPaymentStatus(PaymentStatus.PAID);
 
 		when(customerOrderRepository.findById(1)).thenReturn(Optional.of(order));
 
@@ -50,6 +52,22 @@ public class CustomerOrderServiceTest {
 
 		verify(customerOrderRepository).findById(1);
 
+	}
+
+	@Test
+	void shipUnpaidTest() {
+		CustomerOrder order = new CustomerOrder();
+
+		order.setStatus(OrderStatus.ORDERED);
+
+		order.setPaymentStatus(PaymentStatus.UNPAID);
+
+		when(customerOrderRepository.findById(1)).thenReturn(Optional.of(order));
+
+		ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> {
+			customerOrderService.ship(1);
+		});
+		assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
 	}
 
 	@Test
@@ -165,7 +183,7 @@ public class CustomerOrderServiceTest {
 		CustomerOrder order = new CustomerOrder();
 		order.setUser(user);
 		order.setPaymentStatus(PaymentStatus.UNPAID);
-		
+		order.setStatus(OrderStatus.ORDERED);
 		Payment payment = new Payment();
 		payment.setOrder(order);
 		payment.setStatus(PaymentStatus.UNPAID);
@@ -174,9 +192,9 @@ public class CustomerOrderServiceTest {
 		when(paymentRepository.findByOrder_Id(1)).thenReturn(Optional.of(payment));
 
 		customerOrderService.pay(1, "testuser");
-        
-		assertEquals(PaymentStatus.PAID,payment.getStatus());
-		
+
+		assertEquals(PaymentStatus.PAID, payment.getStatus());
+
 		assertEquals(PaymentStatus.PAID, order.getPaymentStatus());
 
 		verify(customerOrderRepository).findById(1);
@@ -191,7 +209,7 @@ public class CustomerOrderServiceTest {
 		CustomerOrder order = new CustomerOrder();
 		order.setUser(user);
 		order.setPaymentStatus(PaymentStatus.UNPAID);
-		
+
 		Payment payment = new Payment();
 		payment.setOrder(order);
 		payment.setStatus(PaymentStatus.UNPAID);
@@ -199,11 +217,11 @@ public class CustomerOrderServiceTest {
 		when(customerOrderRepository.findById(1)).thenReturn(Optional.of(order));
 
 		assertThrows(ResponseStatusException.class, () -> customerOrderService.pay(1, "userB"));
-		
-		assertEquals(PaymentStatus.UNPAID,payment.getStatus());
+
+		assertEquals(PaymentStatus.UNPAID, payment.getStatus());
 
 		assertEquals(PaymentStatus.UNPAID, order.getPaymentStatus());
-		
+
 		verify(paymentRepository, never()).findByOrder_Id(1);
 	}
 
@@ -216,53 +234,60 @@ public class CustomerOrderServiceTest {
 		CustomerOrder order = new CustomerOrder();
 		order.setUser(user);
 		order.setPaymentStatus(PaymentStatus.PAID);
-		
+		order.setStatus(OrderStatus.ORDERED);
+
 		Payment payment = new Payment();
 		payment.setOrder(order);
 		payment.setStatus(PaymentStatus.PAID);
 
 		when(customerOrderRepository.findById(1)).thenReturn(Optional.of(order));
-		
+
 		when(paymentRepository.findByOrder_Id(1)).thenReturn(Optional.of(payment));
 
 		assertThrows(ResponseStatusException.class, () -> customerOrderService.pay(1, "testuser"));
-		
-		assertEquals(PaymentStatus.PAID,payment.getStatus());
+
+		assertEquals(PaymentStatus.PAID, payment.getStatus());
 
 		assertEquals(PaymentStatus.PAID, order.getPaymentStatus());
 
+		ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+				() -> customerOrderService.pay(1, "testuser"));
+		assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+		assertEquals("この注文は支払いできません", ex.getReason());
+
 	}
-	
+
 	@Test
 	void payLegacyOrderTest() {
-		
+
 		AppUser user = new AppUser();
 		user.setUsername("testuser");
-		
+
 		CustomerOrder order = new CustomerOrder();
 		order.setUser(user);
 		order.setPaymentStatus(PaymentStatus.UNPAID);
-		
+		order.setStatus(OrderStatus.ORDERED);
+
 		Sale sale1 = new Sale();
 		sale1.setSales(1000);
-		
+
 		Sale sale2 = new Sale();
 		sale2.setSales(500);
-		
+
 		when(customerOrderRepository.findById(1)).thenReturn(Optional.of(order));
-		
+
 		when(paymentRepository.findByOrder_Id(1)).thenReturn(Optional.empty());
-		
-		when(saleRepository.findByOrder_Id(1)).thenReturn(List.of(sale1,sale2));
-		
+
+		when(saleRepository.findByOrder_Id(1)).thenReturn(List.of(sale1, sale2));
+
 		customerOrderService.pay(1, "testuser");
-		
+
 		ArgumentCaptor<Payment> captor = ArgumentCaptor.forClass(Payment.class);
-		
+
 		verify(paymentRepository).save(captor.capture());
-		
+
 		Payment savedPayment = captor.getValue();
-		
+
 		assertEquals(order, savedPayment.getOrder());
 		assertEquals(1500, savedPayment.getAmount());
 		assertEquals(PaymentStatus.PAID, savedPayment.getStatus());

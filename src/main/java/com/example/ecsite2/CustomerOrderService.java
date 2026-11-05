@@ -34,6 +34,13 @@ public class CustomerOrderService {
 		if (OrderStatus.ORDERED != order.getStatus()) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "注文済みの注文だけ発送済みにできます");
 		}
+		
+		if (order.getPaymentStatus() != PaymentStatus.PAID) {
+		    throw new ResponseStatusException(
+		        HttpStatus.CONFLICT,
+		        "支払いが完了していない注文は発送できません"
+		    );
+		}
 
 		order.setStatus(OrderStatus.SHIPPED);
 
@@ -57,17 +64,17 @@ public class CustomerOrderService {
 
 			product.setStock(product.getStock() + sale.getAmount());
 		}
-		
+
 		Payment payment = order.getPayment();
-		
-		if(payment != null && payment.getStatus() == PaymentStatus.PAID) {
+
+		if (payment != null && payment.getStatus() == PaymentStatus.PAID) {
 			payment.setStatus(PaymentStatus.REFUNDED);
 		}
-		
-		if(order.getPaymentStatus() == PaymentStatus.PAID) {
+
+		if (order.getPaymentStatus() == PaymentStatus.PAID) {
 			order.setPaymentStatus(PaymentStatus.REFUNDED);
 		}
-		
+
 		order.setStatus(OrderStatus.CANCELLED);
 
 		return order;
@@ -80,6 +87,9 @@ public class CustomerOrderService {
 
 		if (order.getUser() == null || !order.getUser().getUsername().equals(username)) {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "この注文の支払いはできません");
+		}
+		if (order.getStatus() != OrderStatus.ORDERED) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "この注文状態では支払いできません");
 		}
 
 		Payment payment = paymentRepository.findByOrder_Id(orderId).orElse(null);

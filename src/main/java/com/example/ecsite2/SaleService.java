@@ -8,9 +8,11 @@ import org.springframework.stereotype.Service;
 public class SaleService {
 
 	private final SaleRepository saleRepository;
+	private final CustomerOrderRepository customerOrderRepository;
 
-	public SaleService(SaleRepository saleRepository) {
+	public SaleService(SaleRepository saleRepository, CustomerOrderRepository customerOrderRepository) {
 		this.saleRepository = saleRepository;
+		this.customerOrderRepository = customerOrderRepository;
 	}
 
 	public List<SaleResponse> getAllSales() {
@@ -20,9 +22,9 @@ public class SaleService {
 		return sales.stream().map(SaleResponse::from).toList();
 
 	}
-	
+
 	public List<Sale> getMySales(String username) {
-		
+
 		return saleRepository.findByUser_UsernameOrderBySoldAtDesc(username);
 	}
 
@@ -33,7 +35,11 @@ public class SaleService {
 		int total = 0;
 
 		for (Sale sale : sales) {
-			total += sale.getSales();
+
+			if (sale.getOrder().getPaymentStatus() == PaymentStatus.PAID && sale.getOrder().getStatus() != OrderStatus.CANCELLED) {
+
+				total += sale.getSales();
+			}
 
 		}
 		return total;
@@ -41,7 +47,7 @@ public class SaleService {
 	}
 
 	public long getsaleCount() {
-		return saleRepository.count();
+		return customerOrderRepository.countByPaymentStatusAndStatusNot(PaymentStatus.PAID, OrderStatus.CANCELLED);
 	}
 
 }
