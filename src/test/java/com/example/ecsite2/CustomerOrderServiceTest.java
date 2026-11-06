@@ -1,5 +1,6 @@
 package com.example.ecsite2;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.never;
@@ -199,13 +200,11 @@ public class CustomerOrderServiceTest {
 
 		verify(customerOrderRepository).findById(1);
 	}
-
 	@Test
 	void payOtherUserErrorTest() {
 
 		AppUser user = new AppUser();
 		user.setUsername("userA");
-
 		CustomerOrder order = new CustomerOrder();
 		order.setUser(user);
 		order.setPaymentStatus(PaymentStatus.UNPAID);
@@ -254,6 +253,8 @@ public class CustomerOrderServiceTest {
 				() -> customerOrderService.pay(1, "testuser"));
 		assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
 		assertEquals("この注文は支払いできません", ex.getReason());
+		
+		verify(paymentRepository, never()).save(any(Payment.class));
 
 	}
 
@@ -293,5 +294,5 @@ public class CustomerOrderServiceTest {
 		assertEquals(PaymentStatus.PAID, savedPayment.getStatus());
 		assertEquals(PaymentStatus.PAID, order.getPaymentStatus());
 	}
-
+	
 }
