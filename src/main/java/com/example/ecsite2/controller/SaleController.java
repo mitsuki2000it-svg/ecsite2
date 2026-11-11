@@ -32,7 +32,7 @@ public class SaleController {
 	}
 	@GetMapping("/count")
 	public long getSaleCount() {
-		return saleService.getsaleCount();
+		return saleService.getSaleCount();
 	}
 
 }

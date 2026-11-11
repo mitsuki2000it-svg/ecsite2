@@ -46,7 +46,7 @@ public class SaleService {
 
 	}
 
-	public long getsaleCount() {
+	public long getSaleCount() {
 		return customerOrderRepository.countByPaymentStatusAndStatusNot(PaymentStatus.PAID, OrderStatus.CANCELLED);
 	}
 
