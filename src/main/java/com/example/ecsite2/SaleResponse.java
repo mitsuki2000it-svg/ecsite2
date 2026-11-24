@@ -42,7 +42,7 @@ public class SaleResponse {
 				response.setStatus(sale.getOrder().getStatus().name());
 			}
 
-			if (sale.getOrder().getPayment() != null && sale.getOrder().getPayment() != null) {
+			if (sale.getOrder().getPayment() != null && sale.getOrder().getPayment().getStatus() != null) {
 
 				response.setPaymentStatus(sale.getOrder().getPayment().getStatus().name());
 
